@@ -45,7 +45,7 @@ class Book(BaseModel):
 # show four genres
 @app.get("/api/genre")
 def get_genre():
-    return {'genre': ["Action", "Adventure", "Animation", "Children"]}
+    return {'genre': ["fiction", "love", "story", "lady"]}
 
 # show all generes
 '''
@@ -63,9 +63,8 @@ def get_books(genre: list):
     results = data.query(query_str)
     results.loc[:, 'score'] = None
     results = results.drop_duplicates()
-    results = results.sample(18).loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'score']]
+    results = results.sample(18).loc[:, ['itemId', 'Book-title', 'Year-Of-Publication', 'Image-URL-M', 'score']]
     return json.loads(results.to_json(orient="records"))
-
 
 @app.post("/api/recommend")
 def get_recommend(books: List[Book]):
