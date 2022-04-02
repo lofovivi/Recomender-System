@@ -125,7 +125,7 @@
         },
         methods: {
             step1: function () {
-                axios.post(this.baseurl + "/api/movies", this.selected_genre).then((res) => {
+                axios.post(this.baseurl + "/api/books", this.selected_genre).then((res) => {
                     //console.log(res);
                     this.movies = res.data;
                     console.log(typeof this.movies);
