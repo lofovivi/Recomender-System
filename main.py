@@ -11,9 +11,19 @@ from surprise import Reader
 from surprise.model_selection import train_test_split
 from utils import map_genre
 import json
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from surprise import dump
 from surprise import KNNBasic
 from surprise import Dataset
+from entities.Movie import Movie
+
+import  recommendationAlgorithms.content_based_recommendation as content_based
+
+
+templates = Jinja2Templates(directory="templates")   
 
 app = FastAPI()
 app.add_middleware(
@@ -66,21 +76,31 @@ def get_books(genre: list):
     results = results.sample(18).loc[:, ['itemId', 'Book-title', 'Year-Of-Publication', 'Image-URL-M', 'score']]
     return json.loads(results.to_json(orient="records"))
 
+# Yan's function
+# @app.post("/api/recommend")
+# def get_recommend(books: List[Book]):
+#     # print(books)
+#     iid = str(sorted(books, key=lambda i: i.score, reverse=True)[0].movie_id)
+#     score = int(sorted(books, key=lambda i: i.score, reverse=True)[0].score)
+#     res = get_initial_items(iid,score)
+#     res = [int(i) for i in res]
+#     if len(res) > 12:
+#         res = res[:12]
+#     print(res)
+#     rec_books = data.loc[data['movie_id'].isin(res)]
+#     print(rec_books)
+#     rec_books.loc[:, 'like'] = None
+#     results = rec_books.loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'like']]
+#     return json.loads(results.to_json(orient="records"))
+
+
+
 @app.post("/api/recommend")
-def get_recommend(books: List[Book]):
-    # print(books)
-    iid = str(sorted(books, key=lambda i: i.score, reverse=True)[0].movie_id)
-    score = int(sorted(books, key=lambda i: i.score, reverse=True)[0].score)
-    res = get_initial_items(iid,score)
-    res = [int(i) for i in res]
-    if len(res) > 12:
-        res = res[:12]
-    print(res)
-    rec_books = data.loc[data['movie_id'].isin(res)]
-    print(rec_books)
-    rec_books.loc[:, 'like'] = None
-    results = rec_books.loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'like']]
-    return json.loads(results.to_json(orient="records"))
+def get_recommend(movies: List[Movie]):
+
+    #TODO: at the moment the user id is hardcoded -> should be provided by the function call 
+    result = content_based.get_recommend_content_based_approach(movies, data, genre_list, user_id=944)
+    return result
 
 
 @app.get("/api/add_recommend/{item_id}")
