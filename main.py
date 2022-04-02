@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 # =======================DATA=========================
-data = pd.read_csv("movie_info.csv")
+data = pd.read_csv("book_info.csv")
 
 """
 =================== Body =============================
@@ -33,10 +33,10 @@ data = pd.read_csv("movie_info.csv")
 
 # test Yan
 
-class Movie(BaseModel):
-    movie_id: int
-    movie_title: str
-    release_date: str
+class Book(BaseModel):
+    item_id: int
+    book_title: str
+    publication_date: str
     score: int
 
 
@@ -56,30 +56,31 @@ def get_genre():
                       "Romance", "Sci_Fi", "Thriller", "War", "Western"]}
 '''
 
-@app.post("/api/movies")
-def get_movies(genre: list):
+@app.post("/api/books")
+def get_books(genre: list):
     print(genre)
     query_str = " or ".join(map(map_genre, genre))
     results = data.query(query_str)
     results.loc[:, 'score'] = None
+    results = results.drop_duplicates()
     results = results.sample(18).loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'score']]
     return json.loads(results.to_json(orient="records"))
 
 
 @app.post("/api/recommend")
-def get_recommend(movies: List[Movie]):
-    # print(movies)
-    iid = str(sorted(movies, key=lambda i: i.score, reverse=True)[0].movie_id)
-    score = int(sorted(movies, key=lambda i: i.score, reverse=True)[0].score)
+def get_recommend(books: List[Book]):
+    # print(books)
+    iid = str(sorted(books, key=lambda i: i.score, reverse=True)[0].movie_id)
+    score = int(sorted(books, key=lambda i: i.score, reverse=True)[0].score)
     res = get_initial_items(iid,score)
     res = [int(i) for i in res]
     if len(res) > 12:
         res = res[:12]
     print(res)
-    rec_movies = data.loc[data['movie_id'].isin(res)]
-    print(rec_movies)
-    rec_movies.loc[:, 'like'] = None
-    results = rec_movies.loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'like']]
+    rec_books = data.loc[data['movie_id'].isin(res)]
+    print(rec_books)
+    rec_books.loc[:, 'like'] = None
+    results = rec_books.loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'like']]
     return json.loads(results.to_json(orient="records"))
 
 
@@ -88,10 +89,10 @@ async def add_recommend(item_id):
     res = get_similar_items(str(item_id), n=5)
     res = [int(i) for i in res]
     print(res)
-    rec_movies = data.loc[data['movie_id'].isin(res)]
-    print(rec_movies)
-    rec_movies.loc[:, 'like'] = None
-    results = rec_movies.loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'like']]
+    rec_books = data.loc[data['movie_id'].isin(res)]
+    print(rec_books)
+    rec_books.loc[:, 'like'] = None
+    results = rec_books.loc[:, ['movie_id', 'movie_title', 'release_date', 'poster_url', 'like']]
     return json.loads(results.to_json(orient="records"))
 
 
